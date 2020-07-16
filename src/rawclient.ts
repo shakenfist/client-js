@@ -25,6 +25,15 @@ export interface Instance {
   state_updated: number;
 }
 
+export interface InstanceEvent {
+  timestamp: number;
+  fqdn: string;
+  operation: string;
+  phase: string;
+  duration: number;
+  message: string;
+}
+
 interface DiskSpec {
   base: string;
   size: number;
@@ -126,5 +135,11 @@ export class Client {
   @authed
   async instanceAction(uuid: string, action: vmAction) {
     await this.httpClient.post(`instances/${uuid}/${action}`);
+  }
+
+  @authed
+  async getInstanceHistory(uuid: string): Promise<InstanceEvent[]> {
+    const events = await this.httpClient.get<InstanceEvent[]>(`instances/${uuid}/events`);
+    return events;
   }
 }
