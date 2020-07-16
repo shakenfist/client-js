@@ -1,5 +1,6 @@
 import { Client as RawClient } from '../rawclient';
 import { Instance } from './instance';
+import { SFNode } from './node';
 
 export class Client {
   rawClient: RawClient;
@@ -16,5 +17,12 @@ export class Client {
   async listInstances(): Promise<Instance[]> {
     const instances = await this.rawClient.listInstances();
     return instances.map((i) => new Instance(this.rawClient, i));
+  }
+
+  async listNodes(): Promise<SFNode[]> {
+    const nodes = await this.rawClient.listNodes();
+    return nodes.map(
+      ({ name, ip, lastseen }) => new SFNode(this.rawClient, name, ip, new Date(lastseen * 1000)),
+    );
   }
 }

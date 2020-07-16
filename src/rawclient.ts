@@ -41,6 +41,12 @@ interface DiskSpec {
   type: string;
 }
 
+export interface SFNode {
+  name: string;
+  ip: string;
+  lastseen: number;
+}
+
 type vmAction = 'reboot' | 'poweroff' | 'poweron' | 'pause' | 'unpause';
 
 // Method decorator to ensure a valid auth token
@@ -141,5 +147,11 @@ export class Client {
   async getInstanceHistory(uuid: string): Promise<InstanceEvent[]> {
     const events = await this.httpClient.get<InstanceEvent[]>(`instances/${uuid}/events`);
     return events;
+  }
+
+  @authed
+  async listNodes(): Promise<SFNode[]> {
+    const nodes = await this.httpClient.get<SFNode[]>('nodes');
+    return nodes;
   }
 }
