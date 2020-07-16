@@ -1,4 +1,29 @@
-import { Client as RawClient, Instance as RawInstance } from '../rawclient';
+import {
+  Client as RawClient,
+  Instance as RawInstance,
+  InstanceEvent as RawInstanceEvent,
+} from '../rawclient';
+
+export interface InstanceEvent {
+  timestamp: Date;
+  fqdn: string;
+  operation: string;
+  phase: string;
+  duration: number;
+  message: string;
+}
+
+function rawInstanceEventToInstanceEvent(ev: RawInstanceEvent): InstanceEvent {
+  const { timestamp, fqdn, operation, phase, duration, message } = ev;
+  return {
+    timestamp: new Date(timestamp * 1000),
+    fqdn,
+    operation,
+    phase,
+    duration,
+    message,
+  };
+}
 
 export class Instance {
   private rawClient: RawClient;
@@ -9,6 +34,7 @@ export class Instance {
   vdiPort: number;
   state: string;
   stateUpdated: Date;
+  events?: InstanceEvent[];
 
   constructor(rawClient: RawClient, instance: RawInstance) {
     this.rawClient = rawClient;
@@ -33,6 +59,9 @@ export class Instance {
 
   async refreshFields() {
     this.useFieldsFrom(await this.rawClient.getInstance(this.id));
+    // If they've refreshed fields, they probably want the latest
+    // events, so we invalidate our current list of events
+    this.events = undefined;
   }
 
   async start() {
@@ -49,5 +78,12 @@ export class Instance {
   }
   async unpause() {
     await this.rawClient.instanceAction(this.id, 'unpause');
+  }
+  async getEvents(): Promise<InstanceEvent[]> {
+    if (this.events == null) {
+      const events = await this.rawClient.getInstanceHistory(this.id);
+      this.events = events.map(rawInstanceEventToInstanceEvent);
+    }
+    return this.events;
   }
 }
