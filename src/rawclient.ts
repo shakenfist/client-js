@@ -125,6 +125,6 @@ export class Client {
 
   @authed
   async instanceAction(uuid: string, action: vmAction) {
-    await this.httpClient.post(`instances/${uuid}`, action);
+    await this.httpClient.post(`instances/${uuid}/${action}`);
   }
 }
