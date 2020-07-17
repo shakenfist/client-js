@@ -12,15 +12,19 @@ interface AuthRequest {
 
 export interface Instance {
   uuid: string;
+  namespace: string;
   name: string;
   cpus: number;
   memory: number;
   disk_spec: DiskSpec[];
-  ssh_key: string;
+  ssh_key: string | null;
   node: string;
+  power_state: string;
+  power_state_previous: string | null;
+  power_state_updated: number;
   console_port: number;
   vdi_port: number;
-  user_data: string;
+  user_data: string | null;
   state: string;
   state_updated: number;
 }

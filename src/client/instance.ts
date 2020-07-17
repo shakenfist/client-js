@@ -25,6 +25,12 @@ function rawInstanceEventToInstanceEvent(ev: RawInstanceEvent): InstanceEvent {
   };
 }
 
+interface PowerState {
+  current: string;
+  previous?: string;
+  updated: Date;
+}
+
 export class Instance {
   private rawClient: RawClient;
   id: string;
@@ -34,6 +40,7 @@ export class Instance {
   vdiPort: number;
   state: string;
   stateUpdated: Date;
+  powerState: PowerState;
   events?: InstanceEvent[];
 
   constructor(rawClient: RawClient, instance: RawInstance) {
@@ -45,6 +52,11 @@ export class Instance {
     this.vdiPort = instance.vdi_port;
     this.state = instance.state;
     this.stateUpdated = new Date(instance.state_updated * 1000);
+    this.powerState = {
+      current: instance.power_state,
+      previous: instance.power_state_previous || undefined,
+      updated: new Date(instance.power_state_updated * 1000),
+    };
   }
 
   private useFieldsFrom(instance: RawInstance) {
@@ -55,6 +67,11 @@ export class Instance {
     this.vdiPort = instance.vdi_port;
     this.state = instance.state;
     this.stateUpdated = new Date(instance.state_updated * 1000);
+    this.powerState = {
+      current: instance.power_state,
+      previous: instance.power_state_previous || undefined,
+      updated: new Date(instance.power_state_updated * 1000),
+    };
   }
 
   async refreshFields() {
