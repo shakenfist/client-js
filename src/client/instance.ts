@@ -109,9 +109,13 @@ export class Instance {
   async getNode(): Promise<SFNode> {
     if (this.node == null) {
       const nodes = await this.rawClient.listNodes();
+      const rawNode = nodes.find(({ name }) => name === this.nodeName);
+      if (rawNode == null) {
+        throw new Error('Unable to get node for instance');
+      }
       this.node = SFNode.fromRaw(
         this.rawClient,
-        nodes.filter(({ name }) => name === this.nodeName)[0],
+        rawNode,
       );
     }
     return this.node;
