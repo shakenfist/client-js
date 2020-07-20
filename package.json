@@ -1,7 +1,7 @@
 {
   "name": "shakenfist-client",
-  "version": "0.2.1",
-  "description": "A client for Shaken Fist,  a deliberately minimal cloud.",
+  "version": "0.2.2",
+  "description": "A client for Shaken Fist, a deliberately minimal cloud.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {

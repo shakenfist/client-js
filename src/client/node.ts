@@ -1,14 +1,14 @@
 import { Client as RawClient, SFNode as RawSFNode } from '../rawclient';
 
 export class SFNode {
-  name: string;
-  ip: string;
-  lastseen: Date;
-  private rawClient: RawClient;
-  constructor(rawClient: RawClient, name: string, ip: string, lastseen: Date) {
-    this.name = name;
-    this.ip = ip;
-    this.lastseen = lastseen;
-    this.rawClient = rawClient;
+  constructor(
+    private rawClient: RawClient,
+    readonly name: string,
+    readonly ip: string,
+    readonly lastseen: Date,
+  ) {}
+  static fromRaw(rawClient: RawClient, rawNode: RawSFNode): SFNode {
+    const { name, ip, lastseen } = rawNode;
+    return new SFNode(rawClient, name, ip, new Date(lastseen * 1000));
   }
 }

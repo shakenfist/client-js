@@ -3,14 +3,15 @@ import {
   Instance as RawInstance,
   InstanceEvent as RawInstanceEvent,
 } from '../rawclient';
+import { SFNode } from './node';
 
 export interface InstanceEvent {
-  timestamp: Date;
-  fqdn: string;
-  operation: string;
-  phase: string;
-  duration: number;
-  message: string;
+  readonly timestamp: Date;
+  readonly fqdn: string;
+  readonly operation: string;
+  readonly phase: string;
+  readonly duration: number;
+  readonly message: string;
 }
 
 function rawInstanceEventToInstanceEvent(ev: RawInstanceEvent): InstanceEvent {
@@ -26,14 +27,13 @@ function rawInstanceEventToInstanceEvent(ev: RawInstanceEvent): InstanceEvent {
 }
 
 interface PowerState {
-  current: string;
-  previous?: string;
-  updated: Date;
+  readonly current: string;
+  readonly previous?: string;
+  readonly updated: Date;
 }
 
 export class Instance {
-  private rawClient: RawClient;
-  id: string;
+  readonly id: string;
   name: string;
   cpus: number;
   memory: number;
@@ -42,9 +42,10 @@ export class Instance {
   stateUpdated: Date;
   powerState: PowerState;
   events?: InstanceEvent[];
+  private nodeName: string;
+  node?: SFNode;
 
-  constructor(rawClient: RawClient, instance: RawInstance) {
-    this.rawClient = rawClient;
+  constructor(private rawClient: RawClient, instance: RawInstance) {
     this.id = instance.uuid;
     this.name = instance.name;
     this.cpus = instance.cpus;
@@ -57,10 +58,10 @@ export class Instance {
       previous: instance.power_state_previous || undefined,
       updated: new Date(instance.power_state_updated * 1000),
     };
+    this.nodeName = instance.node;
   }
 
   private useFieldsFrom(instance: RawInstance) {
-    this.id = instance.uuid;
     this.name = instance.name;
     this.cpus = instance.cpus;
     this.memory = instance.memory;
@@ -72,6 +73,7 @@ export class Instance {
       previous: instance.power_state_previous || undefined,
       updated: new Date(instance.power_state_updated * 1000),
     };
+    this.nodeName = instance.node;
   }
 
   async refreshFields() {
@@ -79,6 +81,7 @@ export class Instance {
     // If they've refreshed fields, they probably want the latest
     // events, so we invalidate our current list of events
     this.events = undefined;
+    this.node = undefined;
   }
 
   async start() {
@@ -102,5 +105,19 @@ export class Instance {
       this.events = events.map(rawInstanceEventToInstanceEvent);
     }
     return this.events;
+  }
+  async getNode(): Promise<SFNode> {
+    if (this.node == null) {
+      const nodes = await this.rawClient.listNodes();
+      this.node = SFNode.fromRaw(
+        this.rawClient,
+        nodes.filter(({ name }) => name === this.nodeName)[0],
+      );
+    }
+    return this.node;
+  }
+  async getVDI(): Promise<string> {
+    const { ip } = await this.getNode();
+    return `${ip}:${this.vdiPort}`;
   }
 }

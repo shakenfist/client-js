@@ -21,8 +21,6 @@ export class Client {
 
   async listNodes(): Promise<SFNode[]> {
     const nodes = await this.rawClient.listNodes();
-    return nodes.map(
-      ({ name, ip, lastseen }) => new SFNode(this.rawClient, name, ip, new Date(lastseen * 1000)),
-    );
+    return nodes.map((node) => SFNode.fromRaw(this.rawClient, node));
   }
 }
